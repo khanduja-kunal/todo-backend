@@ -4,6 +4,7 @@ import { UserResponse } from './types/user-response.interface';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { join } from 'path';
 import * as fs from 'fs';
+import { Express } from 'express';
 
 @Injectable()
 export class UserService {
@@ -30,15 +31,19 @@ export class UserService {
 
     if(!user) throw new NotFoundException('User not found.');
 
-    if(file) {
-      if (user.avatar) {
-        const oldPath = join(__dirname, '../../uploads', user.avatar);
+    if (file) {
+      if (user.avatar?.includes('uploads/avatars/')) {
+        const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+        const relativePath = user.avatar.replace(`${baseUrl}/`, '');
+        const oldPath = join(__dirname, '../../', relativePath);
         if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
       }
-
-      const avatarPath = `${file.filename}`;
-      dto = { ...dto, avatar: avatarPath };
+    
+      const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+      const imagePath = `uploads/avatars/${file.filename}`;
+      dto = { ...dto, avatar: `${baseUrl}/${imagePath}` };
     }
+    
 
     const updated = await this.prisma.user.update({
       where: { id: userId },

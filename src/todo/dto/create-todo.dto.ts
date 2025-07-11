@@ -1,11 +1,15 @@
-import { IsString, IsEnum, IsDateString } from 'class-validator';
+import { IsString, IsEnum, IsDate, Validate, IsNotEmpty } from 'class-validator';
 import { Priority, Category } from '@prisma/client';
+import { IsFutureDate } from 'src/validators/due-date.validator';
+import { Type } from 'class-transformer';
 
 export class CreateTodoDto {
   @IsString()
+  @IsNotEmpty()
   title: string;
 
   @IsString()
+  @IsNotEmpty()
   description: string;
 
   @IsEnum(Priority)
@@ -14,6 +18,8 @@ export class CreateTodoDto {
   @IsEnum(Category)
   category: Category;
 
-  @IsDateString()
-  dueDate: string; // date string like '2025-07-22'
+  @Type(() => Date)
+  @IsDate()
+  @Validate(IsFutureDate)
+  dueDate: Date;
 }
